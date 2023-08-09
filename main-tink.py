@@ -77,87 +77,65 @@ def week_hall_close_open():
 
 def week_hall_high_low():
 
-    cur_day = date.today().day - 1
+    av_si = {}
+    av_rubf = {}
 
-    counter = 0
-    high_list = []
-    low_list = []
-    x_list = []
+    cur_day = date.today().day
+
+    start = datetime(year=2023, month=date.today().month, day=cur_day, hour=9, minute=0, second=0,tzinfo=pytz.UTC)
+    end = datetime(year=2023, month=date.today().month, day=cur_day, hour=22, minute=0, second=0,tzinfo=pytz.UTC)
 
     with Client(Config.Tinkoff['token']) as client:
         si_candles = client.get_all_candles(
             figi=Config.Tinkoff['figi_si'],
-
-            from_=datetime(year=2023, month=7, day=cur_day,
-                           hour=10, minute=0, second=0,
-                           tzinfo=pytz.UTC),
-            to=datetime(year=2023, month=7, day=cur_day,
-                        hour=23, minute=0, second=0,
-                        tzinfo=pytz.UTC),
-
+            from_=start,
+            to=end,
             interval=CandleInterval.CANDLE_INTERVAL_1_MIN)
     
         rubf_candles = client.get_all_candles(
             figi=Config.Tinkoff['figi_rubf'],
-
-            from_=datetime(year=2023, month=7, day=cur_day,
-                           hour=10, minute=0, second=0,
-                           tzinfo=pytz.UTC),
-            to=datetime(year=2023, month=7, day=cur_day,
-                        hour=23, minute=0, second=0,
-                        tzinfo=pytz.UTC),
-
+            from_=start,
+            to=end,
             interval=CandleInterval.CANDLE_INTERVAL_1_MIN)
 
         for si_candle in si_candles:
-            print(type(si_candle.time))
-            # high_list[si_candle.time] = 1
+            av_si[int(si_candle.time.strftime("%Y%m%d%H%M%S"))] = (si_candle.high.units / 1000 + si_candle.low.units / 1000) * 0.5
 
+        for rubf_candle in rubf_candles:
+            av_rubf[int(rubf_candle.time.strftime("%Y%m%d%H%M%S"))] = (rubf_candle.high.units + rubf_candle.high.nano / 1000000000 + rubf_candle.low.units + rubf_candle.low.nano / 1000000000) * 0.5
 
-        # print(high_list)
+    print(av_si)
+    quit()
 
-        # high = -10000
-        # low = 10000
+    si_buf = 0
+    rubf_buf = 0
 
-        # rubf = 0
+    av_spred = {}
 
-        # for si_candle in si_candles:
-        #     counter += 1
-        #     try: 
-        #         rubf = next(rubf_candles)
-        #     except Exception:
-        #         continue
- 
-        #     rubf_high = rubf.high.units + rubf.high.nano / 1000000000
-        #     rubf_low =  rubf.low.units + rubf.low.nano / 1000000000
+    for i in range(int((start).strftime("%Y%m%d%H%M%S")),
+                    int((end).strftime("%Y%m%d%H%M%S"))):
+        if (i in av_rubf):
+            rubf_buf = av_rubf[i]
+        if (i in av_si):
+            si_buf = av_si[i]           
+        av_spred[i] = round(si_buf - rubf_buf, 2)
 
-        #     si_high = si_candle.high.units + si_candle.high.nano / 1000000000
-        #     si_low = si_candle.low.units + si_candle.low.nano / 1000000000
+    spred_graf = plt.plot(list(range(0, len(av_spred))),
+    # plt.plot(x_list, 
+                av_spred.values())
 
-        #     high_buf = float(rubf_high) - float(si_high) / 1000
-        #     low_buf = float(rubf_low) - float(si_low) / 1000
-            
-        #     if (high_buf > high): high = high_buf
-        #     if (low_buf < low): low = low_buf   
-            
-        #     high_list.append(round(high_buf, 2))
-        #     low_list.append(round(low_buf, 2))
-        #     x_list.append(rubf.time)
+    plt.xlabel('Время')
+    plt.ylabel('Спред')
+    
+    plt.setp(spred_graf[0],linewidth=0.8)
 
-        # print("Максимум / минимум свечи")
-        # print("Date: ", datetime(year=2023,month=7, day=cur_day))
-        # print("Максимум: ", round(high, 2))
-        # print("Минимум: ", round(low, 2))
-        # print(counter)
+    # plt.plot(list(range(0, len(spred_low))), 
+    #          spred_low.values())
 
-        # x_list = list(range(0, len(high_list)))
-
-        # print(len(high_list))
-
-        # plt.bar(x_list, high_list)
-        # plt.bar(x_list, low_list)
-
-        # plt.show()
+    # plt.scatter(list(range(0, len(spred_high))),
+    #             spred_high.values())
+    plt.grid()
+    plt.show()   
 
     return 0
 
