@@ -11,6 +11,72 @@ from tinkoff.invest.utils import now
 
 from Config.Config import Config
 
+def get_near_eur(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1_MIN):
+  
+    start = start or datetime(year=2023, month=date.today().month, day=date.today().day, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
+    end = end or datetime(year=2023, month=date.today().month, day=date.today().day, hour=23, minute=0, second=0,tzinfo=pytz.UTC)
+
+    av_si = {}
+    av_si2 = {}
+
+    with Client(Config.Tinkoff['token']) as client:
+        # resp = client.instruments.futures(instrument_status=1)
+        # for r in resp.instruments:
+        #     if ('NG' in r.ticker):
+        #         print(r.figi)
+        # quit()
+
+        si_candles = client.get_all_candles(
+            # figi=Config.Tinkoff['figi_ng1'],
+            figi=Config.Tinkoff['figi_eur1'],
+            from_=start,
+            to=end,
+            interval=interval)
+    
+        si2_candles = client.get_all_candles(
+            figi=Config.Tinkoff['figi_eur2'],
+            from_=start,
+            to=end,
+            interval=interval)
+
+        for si_candle in si_candles:
+            av_si[int(si_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si_candle.high.units + si_candle.low.units) * 0.5
+
+        for si2_candle in si2_candles:
+            av_si2[int(si2_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si2_candle.high.units + si2_candle.low.units) * 0.5
+
+    return av_si, av_si2
+
+def get_ng(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1_MIN):
+
+    start = start or datetime(year=2023, month=date.today().month, day=date.today().day-10, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
+    end = end or datetime(year=2023, month=date.today().month, day=date.today().day, hour=23, minute=0, second=0,tzinfo=pytz.UTC)
+
+    av_si = {}
+    av_si2 = {}
+
+    with Client(Config.Tinkoff['token']) as client:
+
+        si_candles = client.get_all_candles(
+            figi=Config.Tinkoff['figi_ng1'],
+            from_=start,
+            to=end,
+            interval=interval)
+    
+        si2_candles = client.get_all_candles(
+            figi=Config.Tinkoff['figi_ng2'],
+            from_=start,
+            to=end,
+            interval=interval)
+
+        for si_candle in si_candles:
+            av_si[int(si_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si_candle.high.units + si_candle.high.nano / 1000000000 + si_candle.low.units + si_candle.low.nano / 1000000000) * 0.5
+
+        for si2_candle in si2_candles:
+            av_si2[int(si2_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si2_candle.high.units + si2_candle.high.nano / 1000000000 + si2_candle.low.units + si2_candle.low.nano / 1000000000) * 0.5
+
+
+    return av_si, av_si2
 
 # получение массива данных средних значений si и rubf 
 # для расчета используются максимум и минимум свечи
@@ -31,27 +97,22 @@ def get_near_mxi(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1
 
         si_candles = client.get_all_candles(
             # figi=Config.Tinkoff['figi_ng1'],
-            figi="FUTNG0823000",
+            figi=Config.Tinkoff['figi_mxi1'],
             from_=start,
             to=end,
             interval=interval)
     
         si2_candles = client.get_all_candles(
-            figi=Config.Tinkoff['figi_ng2'],
+            figi=Config.Tinkoff['figi_mxi2'],
             from_=start,
             to=end,
             interval=interval)
 
-        # приходится прибавлять 3 часа ко времени графика. Почему то время считается по GMT+0
         for si_candle in si_candles:
-            # print(f"123: {si_candle}")
-
-            av_si[int(si_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si_candle.high.units / 1000 + si_candle.low.units / 1000) * 0.5
-        
-
+            av_si[int(si_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si_candle.high.units + si_candle.high.nano / 1000000000 + si_candle.low.units + si_candle.low.nano / 1000000000) * 0.5
 
         for si2_candle in si2_candles:
-            av_si2[int(si2_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si2_candle.high.units / 1000 + si2_candle.low.units / 1000) * 0.5
+            av_si2[int(si2_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si2_candle.high.units + si2_candle.high.nano / 1000000000 + si2_candle.low.units + si2_candle.low.nano / 1000000000) * 0.5
 
 
     return av_si, av_si2
@@ -152,9 +213,11 @@ def spred_ema(start = 0, end = 0, n=7, interval = CandleInterval.CANDLE_INTERVAL
 # расчет данных для построения графика коридора спреда на заданом отрезке времени
 def spred_hall(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1_MIN):
 
-    av_rubf, av_si = get_si_rubf(start, end, interval)
+    # av_rubf, av_si = get_si_rubf(start, end, interval)
     # av_rubf, av_si = get_near_usd_si(start, end, interval)
     # av_rubf, av_si = get_near_mxi(start, end, interval)
+    av_rubf, av_si = get_ng(start, end, interval)
+    # av_rubf, av_si = get_near_eur(start, end, interval)    
 
     si_buf = 0
     rubf_buf = 0
@@ -195,7 +258,7 @@ def draw_plot(x_list, y_list, title='', x2_list=0, y2_list=0):
     plt.xlabel('Время')
     plt.ylabel('Спред')
     
-    plt.setp(spred_graf[0],linewidth=0.8)
+    plt.setp(spred_graf[0],linewidth=1.2)
     plt.minorticks_on()
     plt.grid(which='major', color='#444', linewidth=1)
     plt.grid(which='minor', color='#aaa', ls=":")
@@ -253,11 +316,14 @@ def main():
     start, end, title = get_time_interval(term)
 
     x2_list, y2_list = spred_ema(start, end, interval)
+
     x_list, y_list = spred_hall(start, end, interval)
+
 
     draw_plot(x_list, y_list, title, x2_list, y2_list)
 
     # x_list, y_list = spred_hall(start, end, interval)
+    # print(y_list)
     # draw_plot(x_list, y_list, title)
 
     return 0
