@@ -11,13 +11,14 @@ class Config:
                'figi_usd_si': 'FUTSI0923000',
                'figi_usd_si2': 'FUTSI1223000',
                'figi_usd_rubf': 'FUTUSDRUBF00',
-               'figi_mxi1': 'FUTMXI092300',
-               'figi_mxi2': 'FUTMXI122300',
+               'figi_mxi1': 'FUTMIX092300',
+               'figi_mxi2': 'FUTMIX122300',
                'figi_ng1': 'FUTNG0923000',
                'figi_ng2': 'FUTNG1023000',
                'figi_eur1': 'FUTEU0923000',
                'figi_eur2': 'FUTEU1223000',
-
+               'figi_gold1': 'FUTGOLD09230',
+               'figi_gold2': 'FUTGOLD12230'
               }
     Finam = {'token': 'CAEQ1ZACGhjrE64no9apCjdI6k+dMfQso3wM6TKzq9U=',
              'client_ids': '757282RDVBT'

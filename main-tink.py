@@ -11,6 +11,45 @@ from tinkoff.invest.utils import now
 
 from Config.Config import Config
 
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
+
+
+def get_near_gold(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1_MIN):
+
+
+    start = start or datetime(year=2023, month=date.today().month, day=date.today().day, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
+    end = end or datetime(year=2023, month=date.today().month, day=date.today().day, hour=23, minute=0, second=0,tzinfo=pytz.UTC)
+
+    av_si = {}
+    av_si2 = {}
+
+    with Client(Config.Tinkoff['token']) as client:
+
+        si_candles = client.get_all_candles(
+            figi=Config.Tinkoff['figi_gold1'],
+            from_=start,
+            to=end,
+            interval=interval)
+
+        si2_candles = client.get_all_candles(
+            figi=Config.Tinkoff['figi_gold2'],
+            from_=start,
+            to=end,
+            interval=interval)
+
+        # приходится прибавлять 3 часа ко времени графика. Почему то время считается по GMT+0
+        for si_candle in si_candles:
+            av_si[int(si_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si_candle.high.units + si_candle.high.nano / 1000000000 + si_candle.low.units + si_candle.low.nano / 1000000000) * 0.5
+
+        for si2_candle in si2_candles:
+            av_si2[int(si2_candle.time.strftime("%Y%m%d%H%M%S"))+30000] = (si2_candle.high.units + si2_candle.high.nano / 1000000000 + si2_candle.low.units + si2_candle.low.nano / 1000000000) * 0.5
+
+
+    return av_si, av_si2
+
+
 def get_near_eur(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1_MIN):
   
     start = start or datetime(year=2023, month=date.today().month, day=date.today().day, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
@@ -49,7 +88,7 @@ def get_near_eur(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1
 
 def get_ng(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1_MIN):
 
-    start = start or datetime(year=2023, month=date.today().month, day=date.today().day-10, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
+    start = start or datetime(year=2023, month=8, day=11, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
     end = end or datetime(year=2023, month=date.today().month, day=date.today().day, hour=23, minute=0, second=0,tzinfo=pytz.UTC)
 
     av_si = {}
@@ -91,12 +130,11 @@ def get_near_mxi(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1
     with Client(Config.Tinkoff['token']) as client:
         # resp = client.instruments.futures(instrument_status=1)
         # for r in resp.instruments:
-        #     if ('NG' in r.ticker):
+        #     if ('MX' in r.ticker):
         #         print(r.figi)
         # quit()
 
         si_candles = client.get_all_candles(
-            # figi=Config.Tinkoff['figi_ng1'],
             figi=Config.Tinkoff['figi_mxi1'],
             from_=start,
             to=end,
@@ -130,7 +168,7 @@ def get_near_usd_si(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVA
     with Client(Config.Tinkoff['token']) as client:
         # resp = client.instruments.futures(instrument_status=1)
         # for r in resp.instruments:
-        #     if (r.ticker == 'MMZ3'):
+        #     if ('GD' in r.ticker):
         #         print(r.figi)
 
         # quit()
@@ -216,8 +254,11 @@ def spred_hall(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1_M
     # av_rubf, av_si = get_si_rubf(start, end, interval)
     # av_rubf, av_si = get_near_usd_si(start, end, interval)
     # av_rubf, av_si = get_near_mxi(start, end, interval)
-    av_rubf, av_si = get_ng(start, end, interval)
-    # av_rubf, av_si = get_near_eur(start, end, interval)    
+    # av_rubf, av_si = get_ng(start, end, interval)
+    av_rubf, av_si = get_ng()
+    
+    # av_rubf, av_si = get_near_eur(start, end, interval)
+    # av_rubf, av_si = get_near_gold(start, end, interval)
 
     si_buf = 0
     rubf_buf = 0
