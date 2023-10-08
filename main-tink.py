@@ -88,8 +88,8 @@ def get_near_eur(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1
 
 def get_ng(start = 0, end = 0, interval = CandleInterval.CANDLE_INTERVAL_1_MIN):
 
-    start = start or datetime(year=2023, month=8, day=11, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
-    end = end or datetime(year=2023, month=date.today().month, day=date.today().day, hour=23, minute=0, second=0,tzinfo=pytz.UTC)
+    start = start or datetime(year=2023, month=8, day=1, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
+    end = end or datetime(year=2023, month=10, day=8, hour=23, minute=0, second=0,tzinfo=pytz.UTC)
 
     av_si = {}
     av_si2 = {}
@@ -313,6 +313,9 @@ def draw_plot(x_list, y_list, title='', x2_list=0, y2_list=0):
 def get_time_interval(term = 1):
     end = datetime(year=date.today().year, month=date.today().month, day=date.today().day, hour=23, minute=0, second=0,tzinfo=pytz.UTC)
  
+    if (term not in [1, 2, 3, 4]):
+        term = 1
+
     match term:
         case 1:
             # график за сегодня - точнее за ближайший рабочий день (пн-пт)
@@ -343,7 +346,6 @@ def get_time_interval(term = 1):
             start = datetime(year=date.today().year, month=date.today().month, day=date.today().day-6, hour=6, minute=0, second=0,tzinfo=pytz.UTC)
 
             title = f"От {start.strftime('%Y-%m-%d')} до {end.strftime('%Y-%m-%d')}"
-
 
     return start, end, title
 

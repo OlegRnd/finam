@@ -1,7 +1,7 @@
 import time
 
 from FinamPy.FinamPy import FinamPy
-from FinamPy.Config import Config
+from Config.Config import Config
 
 Si = 0
 Rubf = 0

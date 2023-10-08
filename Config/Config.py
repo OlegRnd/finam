@@ -13,8 +13,10 @@ class Config:
                'figi_usd_rubf': 'FUTUSDRUBF00',
                'figi_mxi1': 'FUTMIX092300',
                'figi_mxi2': 'FUTMIX122300',
-               'figi_ng1': 'FUTNG0923000',
-               'figi_ng2': 'FUTNG1023000',
+
+               'figi_ng1': 'FUTNG1123000',
+               'figi_ng2': 'FUTNG1223000',
+               
                'figi_eur1': 'FUTEU0923000',
                'figi_eur2': 'FUTEU1223000',
                'figi_gold1': 'FUTGOLD09230',
